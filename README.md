@@ -76,14 +76,12 @@ Local variables exist only while the block of code in which they are declared is
 The most common code block in which local variables are declared is the function. For example, consider the following two functions:
 
 ```C
-	void func1(void)
-	{
+	void func1(void) {
 		int x;
 		x = 10; 
 	}
 		
-	void func2(void)
-	{
+	void func2(void) {
 		int x;
 		x = -199; 
 	}
@@ -99,8 +97,7 @@ There is an important difference between C (as defined by C89) and C++ as to whe
 For C89, this function is in error,
 but it is perfectly acceptable for C++.
 */
-void f(void)
-{
+void f(void) {
     int i;
     i = 10;
 
@@ -122,8 +119,7 @@ You can initialize a local variable to some known value. This value will be assi
 #include <stdio.h>
 void f(void);
    
-int main(void)
-{
+int main(void) {
 	int i;
     
 	for(i=0; i<10; i++)  f();
@@ -131,8 +127,7 @@ int main(void)
 	return 0; 
 }
 
-void f(void)
-{
+void f(void) {
 	int j = 10;
      
 	printf("%d ", j);
@@ -145,12 +140,9 @@ If a function is to use arguments, it must declare variables that will accept th
 
 ```C       
 /* Return 1 if c is part of string s; 0 otherwise */
-int is_in(char *s, char c)
-{
-    while(*s)
-	{
-    	if(*s==c) 
-		{	
+int is_in(char *s, char c) {
+    while(*s){
+    	if(*s==c) {	
 			return 1;
 		}
 
@@ -176,15 +168,13 @@ int count;  /* count is global */
 void func1(void);
 void func2(void);
 
-int main(void)
-{
+int main(void) {
   	count = 100;
   	func1();
 	return 0; 
 }
 
-void func1(void)
-{
+void func1(void) {
 	int temp;
     temp = count;
     func2();
@@ -194,8 +184,7 @@ void func1(void)
 void func2(void)
 {
 	int count;
-    for(count=1; count<10; count++)
-	{
+    for(count=1; count<10; count++) {
        putchar('.');
 	}
 }
@@ -203,3 +192,4 @@ void func2(void)
 Look closely at this program. Notice that although neither main( ) nor func1( ) has declared the variable count, both may use it. func2( ), however, has declared a local variable called count. When func2( ) refers to count, it refers to only its local variable, not the global one. If a global variable and a local variable have the same name, all references to that variable name inside the code block in which the local variable is declared will refer to that local variable and have no effect on the global variable. This can be convenient, but forgetting it can cause your program to act strangely, even though it looks correct.
 
 Storage for global variables is in a fixed region of memory set aside for this purpose by the compiler. Global variables are helpful when many functions in your program use the same data. You should avoid using unnecessary global variables, however. They take up memory the entire time your program is executing, not just when they are needed. In addition, using a global where a local variable would do makes a function less general because it relies on something that must be defined outside itself. Finally, using a large number of global variables can lead to program errors because of unknown and unwanted side effects. A major problem in developing large programs is the accidental changing of a variable's value because it was used elsewhere in the program. This can happen in C/C++ if you use too many global variables in your programs.
+
