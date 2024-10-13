@@ -1,7 +1,8 @@
 # c-programming-language
 C Programming Language
 
-## five basic data types
+## Expressions
+### five basic data types
 * there are five atomic data types in the C subset
 	1. character				**`char`**
 	2. integer					**`int`**
@@ -33,7 +34,7 @@ C Programming Language
 | `double`               | 64                      | Ten digits of precision                      |
 | `long double`          | 80                      | Ten digits of precision                      |
 ---
-## Identifier Names
+### Identifier Names
 
 In C/C++, `the names of variables, functions, labels, and various other user-defined objects are called identifiers.` These identifiers can vary from one to several characters.
   
@@ -50,7 +51,7 @@ In an identifier, upper- and lowercase are treated as distinct. Hence, count, Co
 
 An identifier cannot be the same as a C or C++ keyword, and should not have the same name as functions that are in the C or C++ library.
 
-<h2><span style="color: teal;">Variables</span></h3>
+### Variables
 As you probably know, `a variable is a named location in memory that is used to hold a value that may be modified by the program.` All variables must be declared before they can be used. The general form of a declaration is
 
 	type variable_list;
@@ -153,7 +154,7 @@ int is_in(char *s, char c) {
 }
 ```
 
-<h3><span style="color: #FF5736;">Global Variables</span></h3>
+<h4><span style="color: #FF5736;">Global Variables</span></h3>
 
 Unlike local variables, global variables are known throughout the program and may be used by any piece of code. Also, they will hold their value throughout the program's execution. You create global variables by declaring them outside of any function. Any expression may access them, regardless of what block of code that expression is in.
 
@@ -193,3 +194,87 @@ Look closely at this program. Notice that although neither main( ) nor func1( ) 
 
 Storage for global variables is in a fixed region of memory set aside for this purpose by the compiler. Global variables are helpful when many functions in your program use the same data. You should avoid using unnecessary global variables, however. They take up memory the entire time your program is executing, not just when they are needed. In addition, using a global where a local variable would do makes a function less general because it relies on something that must be defined outside itself. Finally, using a large number of global variables can lead to program errors because of unknown and unwanted side effects. A major problem in developing large programs is the accidental changing of a variable's value because it was used elsewhere in the program. This can happen in C/C++ if you use too many global variables in your programs.
 
+### The const and volatile Qualifiers
+
+There are two qualifiers that control how variables may be accessed or modified: const and volatile. They must precede the type modifiers and the type names that they qualify. These qualifiers are formally referred to as the cv-qualifiers.
+
+<h4><span style="color: #FF5736;">Const</span></h3>
+
+Variables of type const may not be changed by your program. (A const variable can be given an initial value, however.) The compiler is free to place variables of this type into read-only memory (ROM). For example:
+
+```C   
+	const int a=10;
+```
+creates an integer variable called a with an initial value of 10 that your program may not modify. However, you can use the variable a in other types of expressions. A const variable will receive its value either from an explicit initialization or by some hardware-dependent means.
+
+The const qualifier can be used to protect the objects pointed to by the arguments to a function from being modified by that function. That is, when a pointer is passed to a function, that function can modify the actual variable pointed to by the pointer. However, if the pointer is specified as const in the parameter declaration, the function code won't be able to modify what it points to. For example, the sp_to_dash( ) function in the following program prints a dash for each space in its string argument. That is, the string "this is a test" will be printed as "this-is-a-test". The use of const in the parameter declaration ensures that the code inside the function cannot modify the object pointed to by the parameter.
+
+```C
+#include <stdio.h>
+
+void sp_to_dash(const char *str);
+
+int main(void) {
+	
+	sp_to_dash("this is a test");
+
+	return 0; 
+}
+
+void sp_to_dash(const char *str) {
+    while(*str) {
+		if(*str== ' ') printf("%c", '-');
+		else printf("%c", *str);
+		str++;
+	} 
+}
+```
+If you had written sp_to_dash( ) in such a way that the string would be modified, it would not compile. For example, if you had coded sp_to_dash( ) as follows, you would receive a compile-time error:
+
+```C
+/* This is wrong. */
+void sp_to_dash(const char *str) {
+	while(*str) {
+		if(*str==' ' ) {
+			*str = '-'; /* can't do this; str is const */
+		}
+
+		printf("%c", *str);
+		str++;
+	} 
+}
+```
+Many functions in the standard library use const in their parameter declarations. For example, the strlen( ) function has this prototype:
+```C
+	size_t strlen(const char *str);
+```
+Specifying str as const ensures that strlen( ) will not modify the string pointed to by str. In general, when a standard library function has no need to modify an object pointed to by a calling argument, it is declared as const.
+
+You can also use const to verify that your program does not modify a variable. Remember, a variable of type const can be modified by something outside your program. For example, a hardware device may set its value. However, by declaring a variable as const, you can prove that any changes to that variable occur because of external events.
+
+<h4><span style="color: #FF5736;">volatile</span></h3>
+
+The modifier volatile tells the compiler that a variable's value may be changed in ways not explicitly specified by the program. For example, a global variable's address may be passed to the operating system's clock routine and used to hold the real time of the system. In this situation, the contents of the variable are altered without any explicit assignment statements in the program. This is important because most C/C++ compilers automatically optimize certain expressions by assuming that a variable's content is unchanging if it does not occur on the left side of an assignment statement; thus, it might not be reexamined each time it is referenced. Also, some compilers change the order of evaluation of an expression during the compilation process. The volatile modifier prevents these changes. 
+
+You can use const and volatile together. For example, if 0x30 is assumed to be the value of a port that is changed by external conditions only, the following declaration would prevent any possibility of accidental side effects:
+```C
+    const volatile char *port = (const volatile char *) 0x30;
+```
+
+## Statements
+This chapter discusses the statement. In the most general sense, a statement is a part of your program that can be executed. That is, a statement specifies an action. C and C++ categorize statements into these groups:
+
+■ Selection </br>
+■ Iteration </br>
+■ Jump </br>
+■ Label </br>
+■ Expression </br>
+■ Block </br>
+
+Included in the selection statements are `if` and `switch`. (The term conditional statement is often used in place of "selection statement.") The iteration statements are `while`, `for`, and `do-while`. These are also commonly called loop statements. The jump statements are `break`, `continue`, `goto`, and `return`. The label statements include the `case` and `default` statements (discussed along with the `switch` statement) and the label statement (discussed with `goto`). Expression statements are statements composed of a valid expression. Block statements are simply blocks of code. (Remember, a block begins with a { and ends with a }.) Block statements are also referred to as compound statements.
+
+*`C++ adds two additional statement types: the try block (used by exception handling) and the declaration statement. These are discussed in Part Two`*
+
+Since many statements rely upon the outcome of some conditional test, let's begin by reviewing the concepts of true and false.
+
+### True and False in C and C++
