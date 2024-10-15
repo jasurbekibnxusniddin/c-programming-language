@@ -264,6 +264,8 @@ You can use const and volatile together. For example, if 0x30 is assumed to be t
 ## Statements
 This chapter discusses the statement. In the most general sense, a statement is a part of your program that can be executed. That is, a statement specifies an action. C and C++ categorize statements into these groups:
 
+*statement - this, collection of commands*
+
 ■ Selection </br>
 ■ Iteration </br>
 ■ Jump </br>
@@ -278,3 +280,78 @@ Included in the selection statements are `if` and `switch`. (The term conditiona
 Since many statements rely upon the outcome of some conditional test, let's begin by reviewing the concepts of true and false.
 
 ### True and False in C and C++
+
+Many C/C++ statements rely upon a conditional expression that determines what course of action is to be taken. A conditional expression evaluates to either a true or false value. In C, a true value is any nonzero value, including negative numbers. A false value is 0. This approach to true and false allows a wide range of routines to be coded extremely efficiently.
+
+C++ fully supports the zero/nonzero definition of true and false just described. But C++ also defines a Boolean data type called bool, which can have only the values true and false. As explained in Chapter 2, in C++, a 0 value is automatically converted into false and a nonzero value is automatically converted into true. The reverse also applies: true converts to 1 and false converts to 0. In C++, the expression that controls a conditional statement is technically of type bool. But since any nonzero value converts to true and any zero value converts to false, there is no practical difference between C and C++ on this point.
+
+### Selection Statements
+C/C++ supports two types of selection statements: if and switch. In addition, the ? operator is an alternative to if in certain circumstances.
+
+#### if
+
+The general form of the if statement is
+
+```C
+	if (expression) {
+		// statement
+	} else {
+		// statement
+	}
+```
+where a statement may consist of a single statement, a block of statements, or nothing
+(in the case of empty statements). The else clause is optional. 
+
+If expression evaluates to true (anything other than 0), the statement or block that forms the target of if is executed; otherwise, the statement or block that is the targetof else will be executed, if it exists. Remember, only the code associated with if or the code associated with else executes, never both.
+
+In C, the conditional statement controlling if must produce a scalar result. A scalar is either an integer, character, pointer, or floating-point type. In C++, it may also be of type bool. It is rare to use a floating-point number to control a conditional statement because this slows execution time considerably. (It takes several instructions to perform a floating-point operation. It takes relatively few instructions to perform an integer or character operation.)
+
+The following program contains an example of if. The program plays a very simple version of the "guess the magic number" game. It prints the message ** Right ** when the player guesses the magic number. It generates the magic number using the standard random number generator rand( ), which returns an arbitrary number between 0 and RAND_MAX (which defines an integer value that is 32,767 or larger). rand( ) requires the header file stdlib.h. (A C++ program may also use the new-style header <cstdlib>.)
+
+```C
+/* Magic number program #1. */
+#include <stdio.h>
+#include <stdlib.h>
+
+int main(void) {
+	int magic; /* magic number */
+	int guess; /* user's guess */
+	
+	magic = rand(); /* generate the magic number */
+	
+	printf("Guess the magic number: ");
+	scanf("%d", &guess);
+	
+	if(guess == magic) {
+		printf("** Right **");
+	}
+
+	return 0;
+}
+```
+
+Taking the magic number program further, the next version illustrates the use of the else statement to print a message in response to the wrong number.
+```C
+/* Magic number program #2. */
+#include <stdio.h>
+#include <stdlib.h>
+
+int main(void) {
+	int magic; /* magic number */
+	int guess; /* user's guess */
+	
+	magic = rand(); /* generate the magic number */
+	
+	printf("Guess the magic number: ");
+	scanf("%d", &guess);
+	
+	if(guess == magic) {
+		printf("** Right **");
+	} else {
+		printf("Wrong");
+	}
+	
+	return 0;
+}
+```
+#### Nested ifs

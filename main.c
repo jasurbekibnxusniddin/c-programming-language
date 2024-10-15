@@ -1,7 +1,8 @@
 #include <stdio.h>
 
 int main() {
-    volatile int son;
+    
+    _Bool son;
 
     printf("%d", son);
 
