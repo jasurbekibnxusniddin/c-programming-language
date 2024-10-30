@@ -542,3 +542,432 @@ An array is a collection of variables of the same type that are referred to thro
 In C/C++, all arrays consist of contiguous memory locations. The lowest address corresponds to the first element and the highest address to the last element. Arrays may have from one to several dimensions. The most common array is the null-terminated string, which is simply an array of characters terminated by a null.
 
 Arrays and pointers are closely related; a discussion of one usually refers to the other. This chapter focuses on arrays, while Chapter 5 looks closely at pointers. You should read both to understand fully these important constructs.
+
+### Single-Dimension Arrays
+The general form for declaring a single-dimension array is
+```C
+	type var_name[size];
+```
+Like other variables, arrays must be explicitly declared so that the compiler may allocate space for them in memory. Here, type declares the base type of the array, which is the type of each element in the array, and size defines how many elements the array will hold. For example, to declare a 100-element array called balance of type double, use this statement:
+```C
+	double balance[100];
+```
+An element is accessed by indexing the array name. This is done by placing the index of the element within square brackets after the name of the array. For example,
+```c
+	balance[3] = 12.23;
+```
+assigns element number 3 in balance the value 12.23.
+
+In C/C++, all arrays have 0 as the index of their first element. Therefore, when you write 
+```c
+char p[10];
+```
+you are declaring a character array that has ten elements, p[0] through p[9]. For example,
+the following program loads an integer array with the numbers 0 through 99:
+```c
+#include <stdio.h>
+int main(void) {
+	int x[100]; /* this declares a 100-integer array */
+	int t;
+	
+	/* load x with values 0 through 99 */
+	for(t=0; t<100; ++t) {
+		x[t] = t
+	}
+
+	/* display contents of x */
+	for(t=0; t<100; ++t) {
+		printf("%d ", x[t])
+	}
+	
+	return 0;
+}
+```
+
+The amount of storage required to hold an array is directly related to its type and size. For a single-dimension array, the total size in bytes is computed as shown here:
+```c
+	total bytes = sizeof(base type) x size of array
+```
+
+C/C++ has no bounds checking on arrays. You could overwrite either end of an array and write into some other variable's data or even into the program's code. As the programmer, it is your job to provide bounds checking where needed. For example, this code will compile without error, but is incorrect because the for loop will cause the array count to be overrun.
+
+```c
+	int count[10], i;
+	
+	/* this causes count to be overrun */
+	for(i=0; i<100; i++) count[i] = i;
+```
+Single-dimension arrays are essentially lists of information of the same type that are stored in contiguous memory locations in index order. For example, Figure 4-1 shows how array a appears in memory if it starts at memory location 1000 and is declared as shown here:
+```c
+	char a[7];
+```
+![alt text](./images/image_4.png) 
+A seven-element character array beginning at location 1000
+
+### Generating a Pointer to an Array
+You can generate a pointer to the first element of an array by simply specifying the array name, without any index. For example, given
+```c
+	int sample[10];
+```
+you can generate a pointer to the first element by using the name sample. Thus, the following program fragment assigns p the address of the first element of sample:
+```c
+	int *p;
+	int sample[10];
+
+	p = sample;
+```
+You can also specify the address of the first element of an array using the & operator.
+For example, sample and &sample[0] both produce the same results. 
+However, in professionally written C/C++ code, you will almost never see &sample[0].
+
+### Passing Single-Dimension Arrays to Functions
+In C/C++, you cannot pass an entire array as an argument to a function. You can, however, pass to the function a pointer to an array by specifying the array's name without an index. For example, the following program fragment passes the address of i to func1( ):
+```c
+int main(void) {
+	int i[10];
+
+	func1(i);
+	.
+	.
+	.
+}
+```
+If a function receives a single-dimension array, you may declare its formal parameter in one of three ways: as a pointer, as a sized array, or as an unsized array. For example, to receive i, a function called func1( ) can be declared as **pointer**
+```C
+void func1(int *x) {
+	.
+	.
+	.
+} 
+```
+or as **sized array**
+```C
+void func1(int x[10]) {
+	.
+	.
+	.
+}
+```
+or finaly as **unsized array**
+```c
+void func1(int x[]) {
+	.
+	.
+	.
+}
+```
+All three declaration methods produce similar results because each tells the compiler that an integer pointer is going to be received. The first declaration actually uses a pointer. The second employs the standard array declaration. In the final version, a modified version of an array declaration simply specifies that an array of type int of some length is to be received. As you can see, the length of the array doesn't matter as far as the function is concerned because C/C++ performs no bounds checking. In fact, as far as the compiler is concerned,
+```c
+void func1(int x[32]) {
+	.
+	.
+	.
+}
+```
+also works because the compiler generates code that instructs func1( ) to receive a pointer—it does not actually create a 32-element array.
+
+### Null-Terminated Strings
+By far the most common use of the one-dimensional array is as a character string. C++ supports two types of strings. The first is the null-terminated string, which is a null-terminated character array. (A null is zero.) Thus a null-terminated string contains the characters that comprise the string followed by a null. This is the only type of string defined by C, and it is still the most widely used. Sometimes null-terminated strings are called C-strings. C++ also defines a string class, called string, which provides an object-oriented approach to string handling. It is described later in this book. Here, null-terminated strings are examined.
+
+When declaring a character array that will hold a null-terminated string, you need to declare it to be one character longer than the largest string that it is to hold. For example, to declare an array str that can hold a 10-character string, you would write
+
+```c
+	char str[11];
+```
+This makes room for the null at the end of the string.
+
+When you use a quoted string constant in your program, you are also creating a null-terminated string. A string constant is a list of characters enclosed in double quotes. For example,
+```c
+	"hello there"
+```
+You do not need to add the null to the end of string constants manually—the compiler does this for you automatically.
+
+C/C++ supports a wide range of functions that manipulate null-terminated strings. The most common are
+
+---
+| **Function**     | **Description**                                                                                   |
+|------------------|---------------------------------------------------------------------------------------------------|
+| `strcpy(s1, s2)` | Copies `s2` into `s1`.                                                                             |
+| `strcat(s1, s2)` | Concatenates `s2` onto the end of `s1`.                                                            |
+| `strlen(s1)`     | Returns the length of `s1`.                                                                        |
+| `strcmp(s1, s2)` | Returns 0 if `s1` and `s2` are the same; less than 0 if `s1` < `s2`; greater than 0 if `s1` > `s2`.|
+| `strchr(s1, ch)` | Returns a pointer to the first occurrence of `ch` in `s1`.                                         |
+| `strstr(s1, s2)` | Returns a pointer to the first occurrence of `s2` in `s1`.                                         |
+---
+These functions use the standard header file string.h. 
+
+(C++ programs can also use the C++-style header <cstring>.) The following program illustrates the use of these string functions:
+```c
+#include <stdio.h>
+#include <string.h>
+
+int main(void) {
+	char s1[80], s2[80];
+	
+	gets(s1);
+	gets(s2);
+	
+	printf("lengths: %d %d\n", strlen(s1), strlen(s2));
+	
+	if(!strcmp(s1, s2)) printf("The strings are equal\n");
+	
+	strcat(s1, s2);
+	printf("%s\n", s1);
+	
+	strcpy(s1, "This is a test.\n");
+	printf(s1);
+	
+	if(strchr("hello", 'e')) printf("e is in hello\n");
+	
+	if(strstr("hi there", "hi")) printf("found hi");
+	
+	return 0;
+}
+```
+
+If you run this program and enter the strings "hello" and "hello", the output is
+```txt
+	lengths: 5 5
+	The strings are equal
+	hellohello
+	This is a test.
+	e is in hello
+	found hi
+```
+
+Remember, strcmp( ) returns false if the strings are equal. Be sure to use the logical operator ! to reverse the condition, as just shown, if you are testing for equality.
+
+Although C++ defines a string class, null-terminated strings are still widely used in existing programs. They will probably stay in wide use because they offer a high level of efficiency and afford the programmer detailed control of string operations.
+
+However, for many simple string-handling chores, C++'s string class provides a convenient alternative.
+
+### Two-Dimensional Arrays
+C/C++ supports multidimensional arrays. The simplest form of the multidimensional array is the two-dimensional array. A two-dimensional array is, essentially, an array of one-dimensional arrays. To declare a two-dimensional integer array d of size 10,20, you would write
+```c
+	int d[10][20];
+```
+Pay careful attention to the declaration. Some other computer languages use commas to separate the array dimensions; C/C++, in contrast, places each dimension in its own set of brackets. Similarly, to access point 1,2 of array d, you would use
+```c
+	d[1][2]
+```
+The following example loads a two-dimensional array with the numbers 1 through 12 and prints them row by row.
+```c
+#include <stdio.h>
+
+int main(void) {
+	int t, i, num[3][4];
+	
+	for(t=0; t<3; ++t){
+		for(i=0; i<4; ++i) {
+			num[t][i] = (t*4)+i+1;
+		}
+	}
+	/* now print them out */
+	for(t=0; t<3; ++t) {
+		for(i=0; i<4; ++i) {
+			printf("%3d ", num[t][i]);
+		}
+
+		printf("\n");
+	}
+
+	return 0;
+}
+```
+
+In this example, num[0][0] has the value 1, num[0][1] the value 2, num[0][2] the value 3, and so on. The value of num[2][3] will be 12. You can visualize the num array as
+shown here:
+
+![alt text](./images/image_5.png) 
+
+Two-dimensional arrays are stored in a row-column matrix, where the first index indicates the row and the second indicates the column. This means that the rightmost index changes faster than the leftmost when accessing the elements in the array in the order in which they are actually stored in memory. See Figure 4-2 for a graphic representation of a two-dimensional array in memory.
+
+In the case of a two-dimensional array, the following formula yields the number of bytes of memory needed to hold it:
+```c
+	bytes = size of 1st index x size of 2nd index x sizeof(base type)
+```
+
+Therefore, assuming 4-byte integers, an integer array with dimensions 10,5 would have
+	
+- 10 x 5 x 4
+
+or 200 bytes allocated.
+
+![alt text](./images/image_6.png) 
+
+When a two-dimensional array is used as an argument to a function, only a pointer to the first element is actually passed. However, the parameter receiving a two-dimensional array must define at least the size of the rightmost dimension. (You can specify the left dimension if you like, but it is not necessary.) The rightmost dimension is needed because the compiler must know the length of each row if it is to index the array correctly. For example, a function that receives a two-dimensional integer array with dimensions 10,10 is declared like this:
+```c
+void func1(int x[][10]) {
+	.
+	.
+	.
+}
+```
+The compiler needs to know the size of the right dimension in order to correctly
+execute expressions such as
+```c
+	x[2][4]
+```
+inside the function. If the length of the rows is not known, the compiler cannot determine where the third row begins. 
+
+The following short program uses a two-dimensional array to store the numeric grade for each student in a teacher's classes. 
+
+The program assumes that the teacher has three classes and a maximum of 30 students per class. Notice the way the array grade is accessed by each of the functions.
+
+```c
+/* A simple student grades database. */
+#include <stdio.h>
+#include <ctype.h>
+#include <stdlib.h>
+
+#define CLASSES 3
+#define GRADES 30
+
+int grade[CLASSES][GRADES];
+
+void enter_grades(void);
+int get_grade(int num);
+void disp_grades(int g[][GRADES]);
+
+int main(void) {
+	char ch, str[80];
+	
+	for(;;) {
+		do {
+			printf("(E)nter grades\n");
+			printf("(R)eport grades\n");
+			printf("(Q)uit\n");
+			
+			gets(str);
+			ch = toupper(*str);
+		} while(ch!='E' && ch!='R' && ch!='Q');
+		
+		switch(ch) {
+			case 'E':
+				enter_grades();
+				break;
+			case 'R':
+				disp_grades(grade);
+				break;
+			case 'Q':
+				exit(0);
+		}
+	}
+	return 0;
+}
+/* Enter thestudent's grades. */
+void enter_grades(void) {
+	int t, i;
+	
+	for(t=0; t<CLASSES; t++) {
+		printf("Class # %d:\n", t+1);
+		
+		for(i=0; i<GRADES; ++i)
+			grade[t][i] = get_grade(i);
+	}
+}
+
+/* Read a grade. */
+int get_grade(int num) {
+	char s[80];
+	
+	printf("Enter grade for student # %d:\n", num+1);
+	
+	gets(s);
+	
+	return(atoi(s));
+}
+
+/* Display grades. */
+void disp_grades(int g[][GRADES]) {
+	int t, i;
+	
+	for(t=0; t<CLASSES; ++t) {
+		printf("Class # %d:\n", t+1);
+		
+		for(i=0; i<GRADES; ++i)
+			printf("Student #%d is %d\n", i+1, g[t][i]);
+	}
+}
+```
+### Arrays of Strings
+It is not uncommon in programming to use an array of strings. For example, the input processor to a database may verify user commands against an array of valid commands. To create an array of null-terminated strings, use a two-dimensional character array.
+
+The size of the left index determines the number of strings and the size of the right index specifies the maximum length of each string. The following code declares an array of 30 strings, each with a maximum length of 79 characters, plus the null terminator.
+```c
+char str_array[30][80];
+```
+It is easy to access an individual string: You simply specify only the left index.
+For example, the following statement calls gets( ) with the third string in str_array.
+```c
+gets(str_array[2]);
+```
+The preceding statement is functionally equivalent to
+```c
+gets(&str_array[2][0]);
+```
+but the first of the two forms is much more common in professionally written C/C++ code.
+
+To better understand how string arrays work, study the following short program, which uses a string array as the basis for a very simple text editor:
+```c
+/* A very simple text editor. */
+#include <stdio.h>
+
+#define MAX 100
+#define LEN 80
+
+char text[MAX][LEN];
+int main(void) {
+	register int t, i, j;
+	
+	printf("Enter an empty line to quit.\n");
+	
+	for(t=0; t<MAX; t++) {
+		printf("%d: ", t);
+		gets(text[t]);
+		
+		if(!*text[t]) break; /* quit on blank line */
+	}
+
+	for(i=0; i<t; i++) {
+		for(j=0; text[i][j]; j++) putchar(text[i][j]);
+		
+		putchar('\n');
+	}
+	
+	return 0;
+}
+```
+This program inputs lines of text until a blank line is entered. Then it redisplays each line one character at a time.
+
+### Multidimensional Arrays
+C/C++ allows arrays of more than two dimensions. The exact limit, if any, is determined by your compiler. The general form of a multidimensional array declaration is
+```c
+	type name[Size1][Size2][Size3]. . .[SizeN];
+```
+
+Arrays of more than three dimensions are not often used because of the amount of memory they require. For example, a four-dimensional character array with dimensions 10,6,9,4 requires
+
+	10 * 6 * 9 * 4
+
+or 2,160 bytes. If the array held 2-byte integers, 4,320 bytes would be needed. If the array held doubles (assuming 8 bytes per double), 17,280 bytes would be required. The storage required increases exponentially with the number of dimensions. For example, if a fifth dimension of size 10 was added to the preceding array, then 172, 800 bytes would be required.
+
+In multidimensional arrays, it takes the computer time to compute each index.
+
+This means that accessing an element in a multidimensional array can be slower than accessing an element in a single-dimension array.
+
+When passing multidimensional arrays into functions, you must declare all but the leftmost dimension. For example, if you declare array m as
+
+```c
+	int m[4][3][6][5];
+```
+
+a function, func1( ), that receives m, would look like this:
+```c
+void func1(int d[][3][6][5]) {
+	.
+	.
+	.
+}
+```
+Of course, you can include the first dimension if you like.
