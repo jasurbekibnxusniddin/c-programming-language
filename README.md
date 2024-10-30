@@ -446,12 +446,99 @@ int main(void) {
 	return 0;
 }
 ```
-Both p1 and p2 now point to x. The address of x is displayed by using the %p printf( )
-format specifier, which causes printf( ) to display an address in the format used by the
-host computer.
+Both p1 and p2 now point to x. The address of x is displayed by using the %p printf( ) format specifier, which causes printf( ) to display an address in the format used by the host computer.
 
+### Pointer Arithmetic
+There are only two arithmetic operations that you may use on pointers: addition and subtraction. To understand what occurs in pointer arithmetic, let p1 be an integer pointer with a current value of 2000. Also, assume integers are 2 bytes long. After the expression
+```C
+	p1++;
+```
 
+p1 contains 2002, not 2001. The reason for this is that each time p1 is incremented, it will point to the next integer. The same is true of decrements. For example, assuming that p1 has the value 2000, the expression
+```C
+	p1--;
+```
+causes p1 to have the value 1998.
 
+Generalizing from the preceding example, the following rules govern pointer arithmetic. Each time a pointer is incremented, it points to the memory location of the next element of its base type. Each time it is decremented, it points to the location of the previous element. When applied to character pointers, this will appear as "normal" arithmetic because characters are always 1 byte long. All other pointers will increase or decrease by the length of the data type they point to. This approach ensures that a pointer is always pointing to an appropriate element of its base type. Figure 5-2 illustrates this concept.
 
+You are not limited to the increment and decrement operators. For example, you may add or subtract integers to or from pointers. The expression
+```C
+	p1 = p1 + 12;
+```
+makes p1 point to the twelfth element of p1's type beyond the one it currently points to.
 
+Besides addition and subtraction of a pointer and an integer, only one other arithmetic operation is allowed: You may subtract one pointer from another in order to find the number of objects of their base type that separate the two. All other arithmetic operations are prohibited. Specifically, you may not multiply or divide pointers; you may not add two pointers; you may not apply the bitwise operators to them; and you may not add or subtract type float or double to or from pointers.
 
+![alt text](./images/image_1.png) 
+All pointer arithmetic is relative to its base type (assume 2-byte integers)
+
+### Pointer Comparisons
+You can compare two pointers in a relational expression. For instance, given two pointers p and q, the following statement is perfectly valid:
+```C
+	       if(p<q) printf("p points to lower memory than q\n");
+```
+
+Generally, pointer comparisons are used when two or more pointers point to a common object, such as an array. As an example, a pair of stack routines are developed that store and retrieve integer values. A stack is a list that uses first-in, last-out accessing. It is often compared to a stack of plates on a table—the first one set down is the last one to be used. Stacks are used frequently in compilers, interpreters, spreadsheets, and other system-related software. To create a stack, you need two functions: push( ) and pop( ). The push( ) function places values on the stack and pop( ) takes them off. These routines are shown here with a simple main( ) function to drive them. The program puts the values you enter into the stack. If you enter 0, a value is popped from the stack. To stop the program, enter 1.
+```C
+#include <stdio.h>
+#include <stdlib.h>
+
+#define SIZE 50
+void push(int i);
+int pop(void);
+int  *tos, *p1, stack[SIZE];
+int main(void) {
+	int value;
+    tos = stack; /* tos points to the top of stack */
+    p1 = stack; /* initialize p1 */
+    do {
+        printf("Enter value: ");
+        scanf("%d", &value);
+        if(value!=0) push(value);
+        else printf("value on top is %d\n", pop());
+    } while(value!=-1);
+	
+	return 0; 
+}
+   
+void push(int i) {
+    p1++;
+    
+	if(p1==(tos+SIZE)) {
+       	printf("Stack Overflow.\n");
+		exit(1); 
+	}
+		
+	*p1 = i; 
+}
+
+int pop(void) {
+    if(p1==tos) {
+       	printf("Stack Underflow.\n");
+       	exit(1);
+    }
+     
+	p1--;
+     
+	return *(p1+1);
+}
+```
+You can see that memory for the stack is provided by the array stack. 
+
+The pointer p1 is set to point to the first element in stack. The p1 variable accesses the stack. The variable tos holds the memory address of the top of the stack. It is used to prevent stack overflows and underflows. Once the stack has been initialized, push( ) and pop( ) may be used. Both the push( ) and pop( ) functions perform a relational test on the pointer p1 to detect limit errors. In push( ), p1 is tested against the end of stack by adding SIZE (the size of the stack) to tos. 
+
+This prevents an overflow. In pop( ), p1 is checked against tos to be sure that a stack underflow has not occurred. 
+
+In pop( ), the parentheses are necessary in the return statement. Without them, the statement would look like this:
+```C
+	return *p1 +1;
+```
+which would return the value at location p1 plus one, not the value of the location p1+1.
+
+## Arrays and Null-Terminated Strings
+An array is a collection of variables of the same type that are referred to through a common name. A specific element in an array is accessed by an index.
+
+In C/C++, all arrays consist of contiguous memory locations. The lowest address corresponds to the first element and the highest address to the last element. Arrays may have from one to several dimensions. The most common array is the null-terminated string, which is simply an array of characters terminated by a null.
+
+Arrays and pointers are closely related; a discussion of one usually refers to the other. This chapter focuses on arrays, while Chapter 5 looks closely at pointers. You should read both to understand fully these important constructs.
