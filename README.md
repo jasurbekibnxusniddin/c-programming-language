@@ -536,12 +536,81 @@ In pop( ), the parentheses are necessary in the return statement. Without them, 
 ```
 which would return the value at location p1 plus one, not the value of the location p1+1.
 
+### C's Dynamic Allocation Functions
+Pointers provide necessary support for C/C++'s dynamic allocation system. 
+Dynamic allocation is the means by which a program can obtain memory while it is running.
+As you know, global variables are allocated storage at compile time.  Local variables use the stack. 
+However, neither global nor local variables can be added during program execution. 
+Yet there will be times when the storage needs of a program cannot be known ahead of time. 
+For example, a program might use a dynamic data structure, such as a linked list or binary tree. 
+Such structures are inherently dynamic in nature, growing or shrinking as needed. 
+To implement such a data structure requires that a program be able to allocate and free memory.
+
+C++ actually supports two complete dynamic allocation systems: the one defined by C and the one specific to C++. 
+The system specific to C++ contains several improvements over that used by C, and this approach is discussed in Part Two. 
+Here, C's dynamic allocation functions are described.
+
+Memory allocated by C's dynamic allocation functions is obtained from the heap—the region of free memory that lies between your program and its permanent storage area and the stack. Although the size of the heap is unknown, it generally contains a fairly large amount of free memory.
+
+The core of C's allocation system consists of the functions malloc( ) and free( ). (Most compilers supply several other dynamic allocation functions, but these two
+are the most important.) These functions work together using the free memory region to establish and maintain a list of available storage. The malloc( ) function allocates memory and the free( ) function releases it. That is, each time a malloc( ) memory request is made, a portion of the remaining free memory is allocated. Each time a free( ) memory release call is made, memory is returned to the system. Any program that uses these functions should include the header file stdlib.h. (A C++ program may also use the C++-style header <cstdlib>.)
+
+The malloc( ) function has this prototype:
+```c
+	void *malloc(size_t number_of_bytes);
+```
+Here, number_of_bytes is the number of bytes of memory you wish to allocate. (The type size_t is defined in stdlib.h as, more or less, an unsigned integer.) The malloc( ) function returns a pointer of type void *, which means that you can assign it to any type of pointer. After a successful call, malloc( ) returns a pointer to the first byte
+of the region of memory allocated from the heap. If there is not enough available memory to satisfy the malloc( ) request, an allocation failure occurs and malloc( ) returns a null.
+
+The code fragment shown here allocates 1,000 bytes of contiguous memory:
+```c
+   char *p;
+   p = malloc(1000); /* get 1000 bytes */
+```
+
+After the assignment, p points to the start of 1,000 bytes of free memory.
+
+In the preceding example, notice that no type cast is used to assign the return value of malloc( ) to p. In C, a void * pointer is automatically converted to the type of the pointer on the left side of an assignment. However, it is important to understand that this automatic conversion does not occur in C++. In C++, an explicit type cast is needed when a void * pointer is assigned to another type of pointer. Thus, in C++, the preceding assignment must be written like this:
+
+```C++
+	p = (char *) malloc(1000);
+```
+
+As a general rule, in C++ you must use a type cast when assigning (or otherwise converting) one type of pointer to another. This is one of the few fundamental differences between C and C++.
+
+The next example allocates space for 50 integers. Notice the use of sizeof to ensure portability.
+```c
+   int *p;
+   p = (int *) malloc(50*sizeof(int));
+```
+Since the heap is not infinite, whenever you allocate memory, you must check
+the value returned by malloc( ) to make sure that it is not null before using the pointer. Using a null pointer will almost certainly crash your program. The proper way to allocate memory and test for a valid pointer is illustrated in this code fragment:
+```c
+   	p = (int *) malloc(100);
+   	
+	if(!p) {
+    	printf("Out of memory.\n");
+		exit(1);
+	}
+```
+
+Of course, you can substitute some other sort of error handler in place of the call to exit( ). Just make sure that you do not use the pointer p if it is null.
+The free( ) function is the opposite of malloc( ) in that it returns previously allocated memory to the system. Once the memory has been freed, it may be reused by a subsequent call to malloc( ). The function free( ) has this prototype:
+
+```c
+	void free(void *p);
+```
+
+Here, p is a pointer to memory that was previously allocated using malloc( ). It is critical that you never call free( ) with an invalid argument; otherwise, you will destroy the free list.
+
+
 ## Arrays and Null-Terminated Strings
 An array is a collection of variables of the same type that are referred to through a common name. A specific element in an array is accessed by an index.
 
 In C/C++, all arrays consist of contiguous memory locations. The lowest address corresponds to the first element and the highest address to the last element. Arrays may have from one to several dimensions. The most common array is the null-terminated string, which is simply an array of characters terminated by a null.
 
 Arrays and pointers are closely related; a discussion of one usually refers to the other. This chapter focuses on arrays, while Chapter 5 looks closely at pointers. You should read both to understand fully these important constructs.
+
 
 ### Single-Dimension Arrays
 The general form for declaring a single-dimension array is
@@ -971,3 +1040,566 @@ void func1(int d[][3][6][5]) {
 }
 ```
 Of course, you can include the first dimension if you like.
+
+*  *  *
+
+## Structures, Unions, Enumerations, and User-Defined Types
+The C language gives you five ways to create a custom data type:
+1. The structure, which is a grouping of variables under one name and is called an aggregate data type. (The terms compound or conglomerate are also commonly used.)
+2. The bit-field, which is a variation on the structure and allows easy access to individual bits.
+3. The union, which enables the same piece of memory to be defined as two or more different types of variables.
+4. The enumeration, which is a list of named integer constants.
+5. The typedef keyword, which defines a new name for an existing type. C++ supports all of the above and adds classes, which are described in Part Two. The other methods of creating custom data types are described here.
+
+*In C++, structures and unions have both object-oriented and non-object-oriented attributes. This chapter discusses only their C-like, non-object-oriented features. Their object-oriented qualities are described later in this book.*
+
+### Structures
+A structure is a collection of variables referenced under one name, providing a convenient means of keeping related information together. A structure declaration forms a template that may be used to create structure objects (that is, instances of a structure). The variables that make up the structure are called members. (Structure members are also commonly referred to as elements or fields.) 
+
+Generally, all of the members of a structure are logically related. For example, the name and address information in a mailing list would normally be represented in a structure. The following code fragment shows how to declare a structure that defines the name and address fields. The keyword struct tells the compiler that a structure is being declared.
+```c
+struct addr {
+	char name[30];
+	char street[40];
+	char city[20];
+	char state[3];
+	unsigned long int zip;
+};
+```
+
+Notice that the declaration is terminated by a semicolon. This is because a structure declaration is a statement. The type name of the structure is addr. As such, addr identifies this particular data structure and is its type specifier.
+
+At this point, no variable has actually been created. Only the form of the data has been defined. When you define a structure, you are defining a compound variable type, not a variable. Not until you declare a variable of that type does one actually exist. In C, to declare a variable (i.e., a physical object) of type addr, write
+
+```c
+struct addr addr_info;
+```
+This declares a variable of type addr called addr_info. In C++, you may use this shorter form.
+```c
+   addr addr_info;
+```
+As you can see, the keyword struct is not needed. In C++, once a structure has been declared, you may declare variables of its type using only its type name, without preceding it with the keyword struct. The reason for this difference is that in C, a structure's name does not define a complete type name. In fact, Standard C refers to a structure's name as a tag. In C, you must precede the tag with the keyword struct when declaring variables. 
+
+However, in C++, a structure's name is a complete type name and may be used by itself to define variables. Keep in mind, however, that it is still perfectly legal to use the C-style declaration in a C++ program. Since the programs in Part One of this book are valid for both C and C++, they will use the C declaration method. Just remember that C++ allows the shorter form.
+
+When a structure variable (such as addr_info) is declared, the compiler automatically allocates sufficient memory to accommodate all of its members. Figure 7-1 shows how addr_info appears in memory assuming 1-byte characters and 4-byte long integers. You may also declare one or more structure variables when you declare a structure.
+
+For example,
+
+```c
+struct addr {
+	char name[30];
+	char street[40];
+	char city[20];
+	char state[3];
+	unsigned long int zip;
+} addr_info, binfo, cinfo;
+```
+
+defines a structure type called addr and declares variables addr_info, binfo, and cinfo of that type. It is important to understand that each structure object contains its own
+
+![alt text](./images/image-copy.png) 
+copies of the structure’s members. For example, the zip field of binfo is separate from the zip field of cinfo. Thus, changes to zip in binfo do not affect the zip in cinfo. 
+
+If you only need one structure variable, the structure type name is not needed. That means that
+```c
+struct {
+     char name[30];
+     char street[40];
+     char city[20];
+     char state[3];
+     unsigned long int zip;
+} addr_info;
+```
+
+declares one variable named addr_info as defined by the structure preceding it. The general form of a structure declaration is
+
+```c
+struct struct_type_name { 
+	type member-name; 
+	type member-name; 
+	type member-name;
+} structure-variables;
+```
+where either struct-type-name or structure-variables may be omitted, but not both.
+#### Accessing Structure Members
+Individual members of a structure are accessed through the use of the . operator (usually called the dot operator). For example, the following code assigns the ZIP code 12345 to the zip field of the structure variable addr_info declared earlier: 
+```c
+	addr_info.zip = 12345;
+```
+The structure variable name followed by a period and the member name references that individual member. The general form for accessing a member of a structure is
+```c
+	structure-name.member-name
+```
+Therefore, to print the ZIP code on the screen, write
+
+```c
+    printf("%lu", addr_info.zip);
+```
+
+This prints the ZIP code contained in the zip member of the structure variable addr_info. 
+
+In the same fashion, the character array addr_info.name can be used to call gets( ), as shown here:
+
+```c
+	gets(addr_info.name);
+```
+This passes a character pointer to the start of name.
+
+Since name is a character array, you can access the individual characters of addr_info.name by indexing name. For example, you can print the contents of addr_info.name one character at a time by using the following code:
+```c
+	register int t;
+    
+	for(t=0; addr_info.name[t]; ++t) {
+    
+		putchar(addr_info.name[t]);
+	
+	}
+```
+#### Structure Assignments
+The information contained in one structure may be assigned to another structure of the same type using a single assignment statement. That is, you do not need to assign the value of each member separately. The following program illustrates structure assignments:
+```c
+#include <stdio.h>
+
+int main(void) {
+    struct {
+       int a;
+       int b;
+	} x, y;
+
+	x.a = 10;
+    y = x;  /* assign one structure to another */
+    printf("%d", y.a);	
+
+	return 0; }
+```
+After the assignment, y.a will contain the value 10.
+
+#### Arrays of Structures
+Perhaps the most common usage of structures is in arrays of structures. To declare an array of structures, you must first define a structure and then declare an array variable of that type. For example, to declare a 100-element array of structures of type addr, defined earlier, write
+```c
+	struct addr addr_info[100];
+```
+This creates 100 sets of variables that are organized as defined in the structure addr. 
+
+To access a specific structure, index the structure name. For example, to print the ZIP code of structure 3, write
+```
+	printf("%lu", addr_info[2].zip);
+```
+Like all array variables, arrays of structures begin indexing at 0.
+
+#### Passing Structures to Functions
+This section discusses passing structures and their members to functions.
+
+#### Passing Structure Members to Functions
+
+When you pass a member of a structure to a function, you are actually passing the value of that member to the function. Therefore, you are passing a simple variable (unless, of course, that element is compound, such as an array). For example, consider this structure:
+
+```c
+struct fred {
+	char x;
+	int y;
+	float z;
+	char s[10];
+} mike;
+```
+Here are examples of each member being passed to a function:
+
+```c
+func(mike.x);		/* passes character value of x */
+func2(mike.y);  	/* passes integer value of y */
+func3(mike.z);		/* passes float value of z */
+func4(mike.s);		/* passes address of string s */
+func(mike.s[2]); 	/* passes character value of s[2] */
+```
+If you wish to pass the address of an individual structure member, put the & operator before the structure name. For example, to pass the address of the members of the structure mike, write
+
+```c
+func(&mike.x);		/* passes address of character x */
+func2(&mike.y);		/* passes address of integer y */
+func3(&mike.z);		/* passes address of float z */
+func4(mike.s);		/* passes address of string s */
+func(&mike.s[2]); 	/* passes address of character s[2] */
+```
+Note that the & operator precedes the structure name, not the individual member name. Note also that s already signifies an address, so no & is required.
+
+#### Passing Entire Structures to Functions
+
+When a structure is used as an argument to a function, the entire structure is passed using the standard call-by-value method. Of course, this means that any changes made to the contents of the structure inside the function to which it is passed do not affect the structure used as an argument. 
+
+When using a structure as a parameter, remember that the type of the argument must match the type of the parameter. For example, in the following program both the argument arg and the parameter parm are declared as the same type of structure.
+
+```c
+#include <stdio.h>
+
+/* Define a structure type. */
+struct struct_type {
+	int a, b;
+	char ch; 
+};
+       
+void f1(struct struct_type parm);
+
+int main(void){
+	struct struct_type arg;
+	arg.a = 1000;
+	f1(arg);
+	return 0;
+}
+
+void f1(struct struct_type parm) {
+	printf("%d", parm.a);
+}
+```
+
+As this program illustrates, if you will be declaring parameters that are structures, you must make the declaration of the structure type global so that all parts of your program can use it. For example, had struct_type been declared inside main( ) (for example), then it would not have been visible to f1( ).
+
+As just stated, when passing structures, the type of the argument must match the type of the parameter. It is not sufficient for them to simply be physically similar; their type names must match. For example, the following version of the preceding program is incorrect and will not compile because the type name of the argument used to call f1( ) differs from the type name of its parameter.
+```c
+
+/* This program is incorrect and will not compile. */
+#include <stdio.h>
+
+/* Define a structure type. */
+struct struct_type {
+	int a, b;
+	char ch; 
+};
+/* Define a structure similar to struct_type,
+but with a different name. */
+
+struct struct_type2 {
+     int a, b;
+     char ch;
+};
+
+void f1(struct struct_type2 parm);
+   
+int main(void) {
+	struct struct_type arg;
+	arg.a = 1000;
+	f1(arg); /* type mismatch */
+	return 0;
+}
+
+void f1(struct struct_type2 parm) {
+	printf("%d", parm.a);
+}
+```
+#### Structure Pointers
+C/C++ allows pointers to structures just as it allows pointers to any other type of variable. However, there are some special aspects to structure pointers that you should know.
+
+##### Declaring a Structure Pointer
+Like other pointers, structure pointers are declared by placing * in front of a structure variable's name. For example, assuming the previously defined structure addr, the following declares addr_pointer as a pointer to data of that type:
+```c
+    struct addr *addr_pointer;
+```
+
+*Remember, in C++ it is not necessary to precede this declaration with the keyword struct*
+
+##### Using Structure Pointers
+There are two primary uses for structure pointers: to pass a structure to a function using call by reference, and to create linked lists and other dynamic data structures that rely on dynamic allocation. This chapter covers the first use.
+
+There is one major drawback to passing all but the simplest structures to  functions: the overhead needed to push the structure onto the stack when the function call is executed. (Recall that arguments are passed to functions on the stack.) For simple structures with few members, this overhead is not too great. If the structure contains many members, however, or if some of its members are arrays, run-time performance may degrade to unacceptable levels. The solution to this problem is to pass only a pointer to the structure.
+
+When a pointer to a structure is passed to a function, only the address of the structure is pushed on the stack. This makes for very fast function calls. A second advantage, in some cases, is when a function needs to reference the actual structure used as the argument, instead of a copy. By passing a pointer, the function can modify the contents of the structure used in the call.
+
+To find the address of a structure, place the & operator before the structure's name. For example, given the following fragment:
+
+```c
+struct bal {
+    float balance;
+    char name[80];
+} person;
+       
+struct bal *p;  /* declare a structure pointer */
+```
+then
+```c
+	p = &person;
+```
+places the address of the structure person into the pointer p.
+
+To access the members of a structure using a pointer to that structure, you must use the > operator. For example, this references the balance field:
+
+```c
+	p->balance
+```
+The > is usually called the arrow operator, and consists of the minus sign followed by a greater-than sign. The arrow is used in place of the dot operator when you are accessing a structure member through a pointer to the structure.
+
+To see how a structure pointer can be used, examine this simple program, which prints the hours, minutes, and seconds on your screen using a software timer.
+```c
+/* Display a software timer. */
+#include <stdio.h>
+
+#define DELAY 128000
+
+struct my_time {
+    int hours;
+    int minutes;
+    int seconds;
+};
+
+void display(struct my_time *t);
+void update(struct my_time *t);
+void delay(void);
+
+int main(void) {
+   
+    struct my_time systime;
+    systime.hours = 0;
+    systime.minutes = 0;
+    systime.seconds = 0;
+    for(;;) {
+       update(&systime);
+       display(&systime);
+	}
+	
+	return 0; 
+}
+
+void update(struct my_time *t) {
+    t->seconds++;
+    if(t->seconds==60) {
+       t->seconds = 0;
+       t->minutes++;
+    }
+    
+	if (t->minutes==60) {
+       t->minutes = 0;
+       t->hours++;
+	}
+     
+	if(t->hours==24) t->hours = 0;
+	delay(); 
+}
+
+void display(struct my_time *t) {
+    printf("%02d:", t->hours);
+    printf("%02d:", t->minutes);
+    printf("%02d\n", t->seconds);
+}
+
+void delay(void) {
+	long int t;
+    /* change this as needed */
+    for(t=1; t<DELAY; ++t);
+}
+```
+
+The timing of this program is adjusted by changing the definition of DELAY. As you can see, a global structure called my_time is defined but no variable is declared. Inside main( ), the structure systime is declared and initialized to 00:00:00. This means that systime is known directly only to the main( ) function.
+
+The functions update( ) (which changes the time) and display( ) (which prints the time) are passed the address of systime. In both functions, their arguments are declared as a pointer to a my_time structure. 
+
+Inside update( ) and display( ), each member of systime is accessed via a pointer. Because update( ) receives a pointer to the systime structure, it can update its value.
+
+For example, to set the hours back to 0 when 24:00:00 is reached, update( ) contains this line of code:
+```c
+   if(t->hours==24) t->hours = 0;
+```
+
+This tells the compiler to take the address in t (which points to systime in main( )) and use it to reset hours to zero.
+
+Remember, use the dot operator to access structure elements when operating on the structure itself. When you have a pointer to a structure, use the arrow operator.
+
+##### Arrays and Structures Within Structures
+
+A member of a structure may be either a simple or aggregate type. A simple member is one that is of any of the built-in data types, such as integer or character. You have already seen one type of aggregate element: the character arrays used in addr. Other aggregate data types include one-dimensional and multidimensional arrays of the other data types, and structures.
+
+A member of a structure that is an array is treated as you might expect from the earlier examples. For example, consider this structure:
+```c
+struct x {
+    int a[10][10]; /* 10 x 10 array of ints */
+    float b;
+} y;
+```
+To reference integer 3,7 in a of structure y, write
+```c
+y.a[3][7]
+```
+When a structure is a member of another structure, it is called a nested structure. For example, the structure address is nested inside emp in this example:
+```c
+struct emp {
+    struct addr address; /* nested structure */
+    float wage;
+} worker;
+```
+Here, structure emp has been defined as having two members. The first is a structure of type addr, which contains an employee's address. The other is wage, which holds the employee's wage. The following code fragment assigns 93456 to the zip element of address.
+```c
+	worker.address.zip = 93456;
+```
+As you can see, the members of each structure are referenced from outermost to innermost. C guarantees that structures can be nested to at least 15 levels. Standard C++ suggests that at least 256 levels of nesting be allowed.
+### Bit-Fields
+Unlike some other computer languages, C/C++ has a built-in feature called a bit-field that allows you to access a single bit. Bit-fields can be useful for a number of reasons, such as:
+
+* ■ If storage is limited, you can store several Boolean (true/false) variables in one byte.
+* ■ Certain devices transmit status information encoded into one or more bits within a byte.
+* ■ Certain encryption routines need to access the bits within a byte.
+
+Although these tasks can be performed using the bitwise operators, a bit-field can add more clarity (and possibly efficiency) to your code. 
+
+To access individual bits, C/C++ uses a method based on the structure. In fact, a bit-field is really just a special type of structure member that defines how long, in bits, the field is to be. The general form of a bit-field definition is
+```c
+struct struct_type_name { 
+	type name1 : length; 
+	type name2 : length;
+	.
+	.
+	.
+	type nameN : length;
+} variable_list;
+```
+Here, type is the type of the bit-field and length is the number of bits in the field. A bit-field must be declared as an integral or enumeration type. 
+
+Bit-fields of length 1 should be declared as unsigned, because a single bit cannot have a sign.
+
+Bit-fields are frequently used when analyzing input from a hardware device. For example, the status port of a serial communications adapter might return a status byte organized like this:
+
+---
+|	Bit	|	Meaning When Set
+|-------|----------------------------
+| 0 	| Change in clear-to-send line
+| 1 	| Change in data-set-ready
+| 2 	| Trailing edge detected
+| 3 	| Change in receive line
+| 4 	| Clear-to-send
+| 5 	| Data-set-ready
+| 6 	| Telephone ringing
+| 7 	| Received signal
+-------------------------------------
+You can represent the information in a status byte using the following bit-field:
+```c
+struct status_type {
+    unsigned delta_cts: 1;
+    unsigned delta_dsr: 1;
+    unsigned tr_edge:   1;
+    unsigned delta_rec: 1;
+    unsigned cts:       1;
+    unsigned dsr:       1;
+    unsigned ring:      1;
+    unsigned rec_line:  1;
+} status;
+```
+You might use a routine similar to that shown here to enable a program to determine when it can send or receive data.
+```
+status = get_port_status();
+if(status.cts) printf("clear to send");
+if(status.dsr) printf("data ready");
+```
+To assign a value to a bit-field, simply use the form you would use for any other type of structure element. For example, this code fragment clears the ring field:
+```
+	status.ring = 0;
+```
+As you can see from this example, each bit-field is accessed with the dot operator. However, if the structure is referenced through a pointer, you must use the > operator.
+
+You do not have to name each bit-field. This makes it easy to reach the bit you want, bypassing unused ones. For example, if you only care about the cts and dsr bits, you could declare the status_type structure like this:
+```c
+struct status_type {
+    unsigned :    4;
+    unsigned cts: 1;
+    unsigned dsr: 1;
+} status;
+```
+Also, notice that the bits after dsr do not need to be specified if they are not used. It is valid to mix normal structure members with bit-fields. For example,
+
+```c
+struct emp {
+    struct addr address;
+    float pay;
+    unsigned lay_off:    1; /* lay off or active */
+    unsigned hourly:     1; /* hourly pay or wage */
+    unsigned deductions: 3; /* IRS deductions */
+};
+```
+defines an employee record that uses only 1 byte to hold three pieces of information: the employee's status, whether the employee is salaried, and the number of deductions. Without the bit-field, this information would have taken 3 bytes.
+
+Bit-fields have certain restrictions. You cannot take the address of a bit-field. Bit- fields cannot be arrayed. They cannot be declared as static. You cannot know, from machine to machine, whether the fields will run from right to left or from left to right; this implies that any code using bit-fields may have some machine dependencies. Other restrictions may be imposed by various specific implementations.
+
+### Unions
+A union is a memory location that is shared by two or more different types of variables. A union provides a way of interpreting the same bit pattern in two or more different ways. Declaring a union is similar to declaring a structure. Its general form is
+```c
+union union-type-name { 
+	type member-name;
+	type member-name;
+	type member-name;
+	. . .
+} union-variables;
+```
+For example:
+```c
+union u_type {
+    int i;
+	char ch; 
+};
+```
+This declaration does not create any variables. You may declare a variable either by placing its name at the end of the declaration or by using a separate declaration statement. In C, to declare a union variable called cnvt of type u_type using the definition just given, write
+```
+	union u_type cnvt;
+```
+
+When declaring union variables in C++, you need use only the type name— you don't need to precede it with the keyword union. For example, this is how cnvt is declared in C++:
+```
+	u_type cnvt;
+```
+In C++, preceding this declaration with the keyword union is allowed, but redundant. 
+
+In C++, the name of a union defines a complete type name. In C, a union name is its tag and it must be preceded by the keyword union. (This is similar to the situation with structures described earlier.) However, since the programs in this chapter are valid for both C and C++, the C-style declaration form will be used.
+
+In cnvt, both integer i and character ch share the same memory location. Of course, i occupies 2 bytes (assuming 2-byte integers) and ch uses only 1. 
+Figure 7-2 shows how i and ch share the same address. At any point in your program, you can refer to the data stored in a cnvt as either an integer or a character.
+
+When a union variable is declared, the compiler automatically allocates enough storage to hold the largest member of the union. For example (assuming 2-byte integers), cnvt is 2 bytes long so that it can hold i, even though ch requires only 1 byte.
+![alt text](./images/union1.png) 
+
+To access a member of a union, use the same syntax that you would use for structures: the dot and arrow operators. If you are operating on the union directly, use the dot operator. If the union is accessed through a pointer, use the arrow operator. For example, to assign the integer 10 to element i of cnvt, write
+```c
+	cnvt.i = 10;
+```
+
+In the next example, a pointer to cnvt is passed to a function:
+```c
+void func1(union u_type *un) {
+     un->i = 10; /* assign 10 to cnvt through
+                    a pointer */
+}
+```
+Unions are used frequently when specialized type conversions are needed because you can refer to the data held in the union in fundamentally different ways. For example, you may use a union to manipulate the bytes that comprise a double in order to alter its precision or to perform some unusual type of rounding.
+
+To get an idea of the usefulness of a union when nonstandard type conversions are needed, consider the problem of writing a short integer to a disk file. The C/C++ standard library defines no function specifically designed to write a short integer to a file. While you can write any type of data to a file using fwrite( ), using fwrite( ) incurs excessive overhead for such a simple operation. However, using a union you can easily create a function called putw( ), which writes the binary representation of a short integer to a file one byte at a time. (This example assumes that short integers are 2 bytes long.) To see how, first create a union consisting of one short integer and a 2-byte character array:
+
+```c
+union pw {
+    short int i;
+	char ch[2];
+};
+```
+Now, you can use pw to create the version of putw( ) shown in the following program.
+```c
+#include <stdio.h>
+union pw {
+    short int i;
+    char ch[2];
+};
+
+int putw(short int num, FILE *fp);
+
+int main(void) {
+    FILE *fp;
+    fp = fopen("test.tmp", "wb+");
+    putw(1000, fp);  /* write the value 1000 as an integer */
+    fclose(fp);
+	return 0; 
+}
+   
+int putw(short int num, FILE *fp) {
+    union pw word;
+    word.i = num;
+    putc(word.ch[0], fp); /* write first half */
+    return putc(word.ch[1], fp); /* write second half */
+}
+```
+Although putw( ) is called with a short integer, it can still use the standard function putc( ) to write each byte in the integer to a disk file one byte at a time.
+
+*C++ supports a special type of union called an anonymous union which is discussed in Part Two of this book.*
+
+### Enumerations
