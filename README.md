@@ -1603,3 +1603,112 @@ Although putw( ) is called with a short integer, it can still use the standard f
 *C++ supports a special type of union called an anonymous union which is discussed in Part Two of this book.*
 
 ### Enumerations
+
+## C Style Console I/O
+C++ supports two complete I/O systems. The first it inherits from C. The second is the object-oriented I/O system defined by C++. 
+
+This and the next chapter discuss the C-like I/O system. (Part Two examines C++ I/O.) While you will probably want to use the C++ I/O system for most new projects, C-style I/O is still quite common, and knowledge of its features is fundamental to a complete understanding of C++.
+
+In C, input and output are accomplished through library functions. There are both console and file I/O functions. Technically, there is little distinction between console I/O and file I/O, but conceptually they are in very different worlds. This chapter examines in detail the console I/O functions. The next chapter presents the file I/O system and describes how the two systems relate.
+
+With one exception, this chapter covers only console I/O functions defined by Standard C++. Standard C++ does not define any functions that perform various screen control operations (such as cursor positioning) or that display graphics, because these operations vary widely between machines. Nor does it define any functions that write to a window or dialog box under Windows. Instead, the console I/O functions perform only TTY-based output. However, most compilers include in their libraries screen control and graphics functions that apply to the specific environment in which the compiler is designed to run. And, of course, you may use C++ to write Windows programs, but keep in mind that the C++  language does not directly define functions that perform these tasks.
+
+### An Important Application Note
+Part One of this book uses the C-like I/O system because it is the only style of I/O that is defined for the C subset of C++. As explained, C++ also defines its own object-oriented I/O system. For most C++ applications, you will want to use the C++-specific I O system, not the C I/O system described in this chapter. However, an understanding of C-based I/O is important for the following reasons:
+
+* At some point in your career you may be called upon to write code that is restricted to the C subset. In this case, you will need to use the C-like I/O functions.
+	
+* For the foreseeable future, C and C++ will coexist. Also, many programs will be hybrids of both C and C++ code. Further, it will be common for C programs to be "upgraded" into C++ programs. Thus, knowledge of both the C and the C++ I/O system will be necessary. For example, in order to change the C-style I/O functions into their C++ object-oriented equivalents, you will need to know how both the C and C++ I/O systems operate.
+
+* An understanding of the basic principles behind the C-like I/O system is crucial to an understanding of the C++ object-oriented I/O system. (Both share the same general concepts.)
+
+* In certain situations (for example, in very short programs), it may be easier to use C's non-object-oriented approach to I/O than it is to use the object-oriented I/O defined by C++.
+
+In addition, there is an unwritten rule that any C++ programmer must also be a C programmer. If you don't know how to use the C I O system, you will be limiting your professional horizons.
+
+### Reading and Writing Characters
+The simplest of the console I/O functions are getchar( ), which reads a character from the keyboard, and putchar( ), which prints a character to the screen. The getchar( ) function waits until a key is pressed and then returns its value. The key pressed is also automatically echoed to the screen. The putchar( ) function writes a character to the screen at the current cursor position. The prototypes for getchar( ) and putchar( ) are shown here:
+```c
+int getchar(void); 
+int putchar(int c);
+```
+As its prototype shows, the getchar( ) function is declared as returning an integer. However, you can assign this value to a char variable, as is usually done, because the character is contained in the low-order byte. (The high-order byte is normally zero.) getchar( ) returns EOF if an error occurs.
+
+In the case of putchar( ), even though it is declared as taking an integer parameter, you will generally call it using a character argument. Only the low-order byte of its parameter is actually output to the screen. The putchar( ) function returns the character written, or EOF if an error occurs. (The EOF macro is defined in stdio.h and is generally equal to −1.)
+
+The following program illustrates getchar( ) and putchar( ). It inputs characters from the keyboard and displays them in reverse case⎯that is, it prints uppercase as lowercase and lowercase as uppercase. To stop the program, enter a period.
+
+```c
+#include <stdio.h>
+#include <ctype.h>
+
+int main(void) {
+	char ch;
+    
+	printf("Enter some text (type a period to quit).\n");
+    
+	do {
+        ch = getchar();
+       
+	    if (islower(ch)) {
+			ch = toupper(ch);
+		} else {
+			ch = tolower(ch);
+		}
+        
+		putchar(ch);
+    
+	} while (ch != '.');
+	
+	return 0; 
+}
+```
+### A Problem with getchar( )
+There are some potential problems with getchar( ). Normally, getchar( ) is implemented in such a way that it buffers input until ENTER is pressed. This is called line-buffered input; you have to press ENTER before anything you typed is actually sent to your program. Also, since getchar( ) inputs only one character each time it is called, line-buffering may leave one or more characters waiting in the input queue, which is annoying in interactive environments. Even though Standard C/C++ specify that getchar( ) can be implemented as an interactive function, it seldom is. Therefore, if the preceding program did not behave as you expected, you now know why.
+
+## Alternatives to getchar( )
+getchar( ) might not be implemented by your compiler in such a way that it is useful in an interactive environment. If this is the case, you might want to use a different function to read characters from the keyboard. Standard C++ does not define any function that is guaranteed to provide interactive input, but virtually all C++ compilers do. Although these functions are not defined by Standard C++, they are commonly used since getchar( ) does not fill the needs of most programmers.
+Two of the most common alternative functions, getch( ) and getche( ), have these prototypes:
+```c
+int getch(void); 
+int getche(void);
+```
+For most compilers, the prototypes for these functions are found in the header file conio.h. For some compilers, these functions have a leading underscore. For example, in Microsoft's Visual C++, they are called _getch( ) and _getche( ).
+
+The getch( ) function waits for a keypress, after which it returns immediately. It does not echo the character to the screen. The getche( ) function is the same as getch( ), but the key is echoed. You will frequently see getche( ) or getch( ) used instead of getchar( ) when a character needs to be read from the keyboard in an interactive program. However, if your compiler does not support these alternative functions, or if getchar( ) is implemented as an interactive function by your compiler, you should substitute getchar( ) when necessary. 
+
+For example, the previous program is shown here using getch( ) instead of getchar( ):
+```c
+#include <stdio.h>
+#include <conio.h>
+#include <ctype.h>
+
+int main(void) {
+	char ch;
+    printf("Enter some text (type a period to quit).\n");
+    
+	do {
+		ch = getch();
+
+       	if(islower(ch)) { 
+			ch = toupper(ch);
+       	} else {
+			ch = tolower(ch);
+		}
+
+       	putchar(ch);
+
+    } while (ch != '.');
+	
+	return 0; 
+}
+```
+When you run this version of the program, each time you press a key, it is immediately transmitted to the program and displayed in reverse case. Input is no longer line-buffered. While the code in this book will not make further use of getch( ) or getche( ), they may be useful in the programs that you write.
+
+*At the time of this writing, when using Microsoft's Visual C++ compiler, _getche( ) and _getch( ) are not compatible with the standard C/C++ input functions, such as scanf( ) or gets( ). Instead, you must use special versions of the standard functions, such as cscanf( ) or cgets( ). You will need to examine the Visual C++ documentation for details.*
+
+## File I/O
+This chapter describes the C file system. As explained in Chapter 8, C++ supports two complete I/O systems: the one inherited from C and the object-oriented system defined by C++. This chapter covers the C file system. (The C++ file system is discussed in Part Two.) While most new code will use the C++ file system, knowledge of the C file system is still important for the reasons given in the preceding chapter.
+
+## C Versus C++ File I/O
+There is sometimes confusion over how C's file system relates to C++. First, C++ supports the entire Standard C file system. Thus, if you will be porting C code to C++, you will not have to change all of your I/O routines right away. Second, C++ defines its own, object-oriented I/O system, which includes both I/O functions and I/O operators. The C++ I/O system completely duplicates the functionality of the C I/O system and renders the C file system redundant. While you will usually want to use the C++ I/O system, you are free to use the C file system if you like. Of course, most C++ programmers elect to use the C++ I/O system for reasons that are made clear in Part Two of this book.
