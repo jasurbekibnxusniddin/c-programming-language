@@ -1712,3 +1712,249 @@ This chapter describes the C file system. As explained in Chapter 8, C++ support
 
 ## C Versus C++ File I/O
 There is sometimes confusion over how C's file system relates to C++. First, C++ supports the entire Standard C file system. Thus, if you will be porting C code to C++, you will not have to change all of your I/O routines right away. Second, C++ defines its own, object-oriented I/O system, which includes both I/O functions and I/O operators. The C++ I/O system completely duplicates the functionality of the C I/O system and renders the C file system redundant. While you will usually want to use the C++ I/O system, you are free to use the C file system if you like. Of course, most C++ programmers elect to use the C++ I/O system for reasons that are made clear in Part Two of this book.
+
+### Streams and Files
+Before beginning our discussion of the C file system, it is necessary to know the difference between the terms streams and files. The C I/O system supplies a consistent interface to the programmer independent of the actual device being accessed. That is, the C I/O system provides a level of abstraction between the programmer and the device. This
+abstraction is called a stream and the actual device is called a file. It is important to
+understand how streams and files interact.
+
+*The concept of streams and files is also important to the C++ I/O system discussed in
+Part Two.*
+
+### Streams
+The C file system is designed to work with a wide variety of devices, including terminals, disk drives, and tape drives. Even though each device is very different, the file system transforms each into a logical device called a stream. All streams behave similarly. Because streams are largely device independent, the same function that can write to a disk file can also be used to write to another type of device, such as the console. There are two types of streams: text and binary.
+
+#### Text Streams
+A text stream is a sequence of characters. Standard C allows (but does not require) a
+text stream to be organized into lines terminated by a newline character. However,
+the newline character is optional on the last line. (Actually, most C/C++ compilers do
+not terminate text streams with newline characters.) In a text stream, certain character
+translations may occur as required by the host environment. For example, a newline
+may be converted to a carriage return/linefeed pair. Therefore, there may not be a
+one-to-one relationship between the characters that are written (or read) and those
+on the external device. Also, because of possible translations, the number of characters
+written (or read) may not be the same as those on the external device.
+
+#### Binary Streams
+A binary stream is a sequence of bytes that have a one-to-one correspondence to those
+in the external device ⎯that is, no character translations occur. Also, the number of
+bytes written (or read) is the same as the number on the external device. However,
+an implementation-defined number of null bytes may be appended to a binary stream.
+These null bytes might be used to pad the information so that it fills a sector on a disk,
+for example.
+
+### Files
+In C/C++, a file may be anything from a disk file to a terminal or printer. You associate
+a stream with a specific file by performing an open operation. Once a file is open,
+information may be exchanged between it and your program.
+
+Not all files have the same capabilities. For example, a disk file can support random
+access while some printers cannot. This brings up an important point about the C I/O
+system: All streams are the same but all files are not.
+
+If the file can support position requests, opening that file also initializes the file
+position indicator to the start of the file. As each character is read from or written to
+the file, the position indicator is incremented, ensuring progression through the file.
+
+You disassociate a file from a specific stream with a close operation. If you close
+a file opened for output, the contents, if any, of its associated stream are written to the
+external device. This process is generally referred to as flushing the stream, and guarantees
+that no information is accidentally left in the disk buffer. All files are closed automatically
+when your program terminates normally, either by main( ) returning to the operating
+system or by a call to exit( ). Files are not closed when a program terminates abnormally,
+such as when it crashes or when it calls abort( ).
+
+Each stream that is associated with a file has a file control structure of type FILE.
+Never modify this file control block.
+
+If you are new to programming, the separation of streams and files may seem
+unnecessary or contrived. Just remember that its main purpose is to provide a consistent interface. You need only think in terms of streams and use only one file
+system to accomplish all I/O operations. The I/O system automatically converts the
+raw input or output from each device into an easily managed stream.
+
+### File System Basics
+The C file system is composed of several interrelated functions. The most common of
+these are shown in Table 9-1. They require the header stdio.h. C++ programs may also
+use the C++-style header `<cstdio>`
+
+![alt text](./images/cfilesystem.png)  *Commonly Used C File-System Functions*
+
+The header file stdio.h and `<cstdio>` header provide the prototypes for the I/O
+functions and define these three types: size_t, fpos_t, and FILE. The size_t type is some
+variety of unsigned integer, as is fpos_t. The FILE type is discussed in the next section.
+Also defined in stdio.h and `<cstdio>` are several macros. The ones relevant to this
+chapter are NULL, EOF, FOPEN_MAX, SEEK_SET, SEEK_CUR, and SEEK_END.
+
+The NULL macro defines a null pointer. The EOF macro is generally defined as −1
+and is the value returned when an input function tries to read past the end of the file.
+FOPEN_MAX defines an integer value that determines the number of files that may
+be open at any one time. The other macros are used with fseek( ), which is the function
+that performs random access on a file.
+
+### The File Pointer
+The file pointer is the common thread that unites the C I/O system. A file pointer is a
+pointer to a structure of type FILE. It points to information that defines various things
+about the file, including its name, status, and the current position of the file. In essence,
+the file pointer identifies a specific file and is used by the associated stream to direct the
+operation of the I/O functions. In order to read or write files, your program needs to use
+file pointers. To obtain a file pointer variable, use a statement like this:
+```c
+	FILE *fp;
+```
+### Opening a File
+The fopen( ) function opens a stream for use and links a file with that stream. Then
+it returns the file pointer associated with that file. Most often (and for the rest of this
+discussion), the file is a disk file. The fopen( ) function has this prototype:
+```c
+	FILE *fopen(const char *filename, const char *mode);
+```
+where filename is a pointer to a string of characters that make up a valid filename and
+may include a path specification. The string pointed to by mode determines how the file
+will be opened. Table 9-2 shows the legal values for mode. Strings like "r+b" may also be
+represented as "rb+."
+
+![alt text](./images/cfilemodes.png) *The Legal Values for Mode*
+
+![alt text](./images/cfilesystemmod2.png) *The Legal Values for Mode (continued)*
+
+As stated, the fopen( ) function returns a file pointer. Your program should never alter the value of this pointer. If an error occurs when it is trying to open the file, fopen( ) returns a null pointer.
+The following code uses fopen( ) to open a file named TEST for output.
+```c
+	FILE *fp;	
+	fp = fopen("test", "w");
+```
+While technically correct, you will usually see the preceding code written like this:
+
+```c
+	FILE *fp;
+	
+	if ((fp = fopen("test","w"))==NULL) {
+		printf("Cannot open file.\n");
+		exit(1);
+	}
+```
+
+This method will detect any error in opening a file, such as a write-protected or a full
+disk, before your program attempts to write to it. In general, you will always want to
+confirm that fopen( ) succeeded before attempting any other operations on the file.
+
+Although most of the file modes are self-explanatory, a few comments are in order.
+If, when opening a file for read-only operations, the file does not exist, fopen( ) will fail.
+When opening a file using append mode, if the file does not exist, it will be created.
+Further, when a file is opened for append, all new data written to the file will be written
+to the end of the file. The original contents will remain unchanged. If, when a file is
+opened for writing, the file does not exist, it will be created. If it does exist, the contents
+of the original file will be destroyed and a new file created. The difference between
+modes r+ and w+ is that r+ will not create a file if it does not exist; however, w+ will.
+Further, if the file already exists, opening it with w+ destroys its contents; opening it
+with r+ does not.
+
+As Table 9-2 shows, a file may be opened in either text or binary mode. In most
+implementations, in text mode, carriage return/linefeed sequences are translated to
+newline characters on input. On output, the reverse occurs: newlines are translated
+to carriage return/linefeeds. No such translations occur on binary files.
+
+The number of files that may be open at any one time is specified by FOPEN_MAX.
+This value will usually be at least 8, but you must check your compiler’s documentation
+for its exact value.
+
+### Closing a File
+The fclose( ) function closes a stream that was opened by a call to fopen( ). It writes
+any data still remaining in the disk buffer to the file and does a formal operating-
+system-level close on the file. Failure to close a stream invites all kinds of trouble,
+including lost data, destroyed files, and possible intermittent errors in your program.
+fclose( ) also frees the file control block associated with the stream, making it available
+for reuse. There is an operating-system limit to the number of open files you may have
+at any one time, so you may have to close one file before opening another.
+
+The fclose( ) function has this prototype:
+```c
+	int fclose(FILE *fp);
+```
+where fp is the file pointer returned by the call to fopen( ). A return value of zero signifies
+a successful close operation. The function returns EOF if an error occurs. You can use the
+standard function ferror( ) (discussed shortly) to determine and report any problems.
+Generally, fclose( ) will fail only when a disk has been prematurely removed from the
+drive or there is no more space on the disk.
+
+### Writing a Character
+The C I/O system defines two equivalent functions that output a character: putc( ) and
+fputc( ). (Actually, putc( ) is usually implemented as a macro.) There are two identical functions simply to preserve compatibility with older versions of C. This book uses
+putc( ), but you can use fputc( ) if you like.
+
+The putc( ) function writes characters to a file that was previously opened for writing using the fopen( ) function. The prototype of this function is
+
+```c
+int putc(int ch, FILE *fp);
+```
+where fp is the file pointer returned by fopen( ) and ch is the character to be output. 
+
+The file pointer tells putc( ) which file to write to. Although ch is defined as an int, only the low-order byte is written.
+
+If a putc( ) operation is successful, it returns the character written. Otherwise, it
+returns EOF.
+
+### Reading a Character
+There are also two equivalent functions that input a character: getc( ) and fgetc( ).
+Both are defined to preserve compatibility with older versions of C. This book uses
+getc( ) (which is usually implemented as a macro), but you can use fgetc( ) if you like.
+The getc( ) function reads characters from a file opened in read mode by fopen( ).
+The prototype of getc( ) is
+```c
+int getc(FILE *fp);
+```
+where fp is a file pointer of type FILE returned by fopen( ). getc( ) returns an integer,
+but the character is contained in the low-order byte. Unless an error occurs, the high-
+order byte is zero.
+The getc( ) function returns an EOF when the end of the file has been reached.
+Therefore, to read to the end of a text file, you could use the following code:
+
+```c
+	do {
+		ch = getc(fp);
+	} while(ch!=EOF);
+```
+
+However, getc( ) also returns EOF if an error occurs. You can use ferror( ) to determine
+precisely what has occurred.
+
+### Using fopen( ), getc( ), putc( ), and fclose( )
+The functions fopen( ), getc( ), putc( ), and fclose( ) constitute the minimal set of file
+routines. The following program, KTOD, is a simple example of using putc( ), fopen( ),
+and fclose( ). It reads characters from the keyboard and writes them to a disk file until
+the user types a dollar sign. The filename is specified from the command line. For example,
+if you call this program KTOD, typing KTOD TEST allows you to enter lines of text
+into the file called TEST.
+
+```c
+/* KTOD: A key to disk program. */
+#include <stdio.h>
+#include <stdlib.h>
+
+int main(int argc, char *argv[]) {
+	
+	FILE *fp;
+	char ch;
+	
+	if(argc!=2) {
+		printf("You forgot to enter the filename.\n");
+		exit(1);
+	}
+
+	if((fp=fopen(argv[1], "w"))==NULL) {
+		printf("Cannot open file.\n");
+		exit(1);
+	}
+
+	do {
+		ch = getchar();
+		putc(ch, fp);
+	} while (ch != '$');
+
+	fclose(fp);
+	return 0;
+}
+```
+
+The complementary program DTOS reads any text file and displays the contents on
+the screen. It demonstrates getc( ).

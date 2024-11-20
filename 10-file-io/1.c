@@ -4,19 +4,23 @@
 
 int main() {
     // open a filr for reading
-    FILE *file = fopen("./10-file-io/test.txt", "r");
+    FILE *file = fopen("test.txt", "a+");
     if (file == NULL) {
         printf("Error opening file\n");
         return 1;
     }
 
+    putc('a', file);
+
     // read the contents of the file
     char buffer[1024];
-    while (fgets(buffer, sizeof(buffer), file) != NULL) {
-        printf("%s", buffer);
-    }
+    fgets(buffer, sizeof(buffer), file);
+
+    // print the contents of the file
+    printf("%s\n", buffer);
 
     // close the file
     fclose(file);
+
     return 0;
 }
